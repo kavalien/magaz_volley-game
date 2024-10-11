@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Волейбол</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #faf8ef;
+            font-family: Arial, sans-serif;
+        }
+        #logo {
+            margin-bottom: 10px;
+        }
+        h1 {
+            margin: 10px 0;
+        }
+        h2 {
+            margin: 5px 0;
+        }
+        #shopButton, #infoButton {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        #shopButton:hover, #infoButton:hover {
+            background-color: #45a049;
+        }
+        #container {
+            display: flex;
+            align-items: center;
+        }
+        #imageList {
+            display: flex;
+            flex-direction: column;
+            margin-right: 20px;
+            align-items: center;
+        }
+        .image-item {
+            width: 50px;
+            height: 50px;
+            margin: 5px 0;
+        }
+        .blur {
+            filter: blur(5px);
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tile {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #eee4da;
+            position: relative;
+        }
+        .tile img {
+            width: 100%;
+            height: 100%;
+        }
+        #score {
+            font-size: 24px;
+        }
+        /* Адаптивные стили */
+        @media (max-width: 500px) {
+            #game {
+                grid-template-columns: repeat(4, 70px);
+                grid-gap: 5px;
+            }
+            .tile {
+                width: 70px;
+                height: 70px;
+            }
+            #score {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="logo">
+        <img src="https://i.imgur.com/X4bYKUV.png" alt="Логотип компании" width="100"> <!-- Замените на ссылку на ваш логотип -->
+    </div>
+    <h1>Magaz_volley</h1>
+    <h2>Волейбольные товары</h2>
+    <button id="shopButton" onclick="window.location.href='https://vk.com/magaz_volley';">Перейти в магазин</button> <!-- Замените на вашу ссылку -->
+    
+    <div id="container">
+        <div id="imageList">
+            <img id="image-2" class="image-item" src="https://i.imgur.com/fuaHqLU.png" alt="2">
+            <img id="image-4" class="image-item" src="https://i.imgur.com/EDaPlnz.png" alt="4">
+            <img id="image-8" class="image-item" src="https://i.imgur.com/6JJg9zl.png" alt="8">
+            <img id="image-16" class="image-item" src="https://i.imgur.com/dT88ss7.png" alt="16">
+            <img id="image-32" class="image-item" src="https://i.imgur.com/gHNgQMB.png" alt="32">
+            <img id="image-64" class="image-item" src="https://i.imgur.com/LAy7bl5.png" alt="64">
+            <img id="image-128" class="image-item" src="https://i.imgur.com/eu1rilG.png" alt="128">
+            <img id="image-256" class="image-item" src="https://i.imgur.com/Zu3w1Vm.png" alt="256">
+            <img id="image-512" class="image-item" src="https://i.imgur.com/awN5u1x.png" alt="512">
+            <img id="image-1024" class="image-item" src="https://i.imgur.com/X4bYKUV.png" alt="1024">
+            <img id="image-2048" class="image-item blur" src="https://i.imgur.com/A5J6My7.png" alt="2048"> <!-- Замените на ссылку на 2048 -->
+        </div>
+        
+        <div id="game"></div>
+    </div>
+
+    <div id="score">Счет: 0</div>
+    <script>
+        const gameBoard = document.getElementById('game');
+        const scoreDisplay = document.getElementById('score');
+        let score = 0;
+
+        let board = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]
+        ];
+
+ // Замените эти ссылки на ссылки на изображения мячей
+        const ballImages = {
+            2: 'https://i.imgur.com/fuaHqLU.png', // Замените на реальные ссылки
+            4: 'https://i.imgur.com/EDaPlnz.png',
+            8: 'https://i.imgur.com/6JJg9zl.png',
+            16: 'https://i.imgur.com/dT88ss7.png',
+            32: 'https://i.imgur.com/gHNgQMB.png',
+            64: 'https://i.imgur.com/LAy7bl5.png',
+            128: 'https://i.imgur.com/eu1rilG.png',
+            256: 'https://i.imgur.com/Zu3w1Vm.png',
+            512: 'https://i.imgur.com/awN5u1x.png',
+            1024: 'https://i.imgur.com/X4bYKUV.png',
+            2048: 'https://i.imgur.com/A5J6My7.png',
+
+        };
+
+        function startGame() {
+            addRandomTile();
+            addRandomTile();
+            updateBoard();
+        }
+
+        function addRandomTile() {
+            let emptyCells = [];
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    if (board[y][x] === 0) {
+                        emptyCells.push({ x, y });
+                    }
+                }
+            }
+            const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            board[randomCell.y][randomCell.x] = Math.random() < 0.9 ? 2 : 4;
+        }
+
+        function updateBoard() {
+            gameBoard.innerHTML = '';
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    if (board[y][x] !== 0) {
+                        const img = document.createElement('img');
+                        img.src = ballImages[board[y][x]];
+                        tile.appendChild(img);
+                    }
+                    gameBoard.appendChild(tile);
+                }
+            }
+            scoreDisplay.textContent = `Счет: ${score}`;
+        }
+
+        function move(direction) {
+            let moved = false;
+            switch (direction) {
+                case 'left':
+                    for (let y = 0; y < 4; y++) {
+                        for (let x = 1; x < 4; x++) {
+                            if (board[y][x] !== 0) {
+                                for (let i = x; i > 0; i--) {
+                                    if (board[y][i - 1] === 0) {
+                                        board[y][i - 1] = board[y][i];
+                                        board[y][i] = 0;
+                                        moved = true;
+                                    } else if (board[y][i - 1] === board[y][i]) {
+                                        board[y][i - 1] *= 2;
+                                        board[y][i] = 0;
+                                        score += board[y][i - 1];
+                                        moved = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 'right':
+                    for (let y = 0; y < 4; y++) {
+                        for (let x = 2; x >= 0; x--) {
+                            if (board[y][x] !== 0) {
+                                for (let i = x; i < 3; i++) {
+                                    if (board[y][i + 1] === 0) {
+                                        board[y][i + 1] = board[y][i];
+                                        board[y][i] = 0;
+                                        moved = true;
+                                    } else if (board[y][i + 1] === board[y][i]) {
+                                        board[y][i + 1] *= 2;
+                                        board[y][i] = 0;
+                                        score += board[y][i + 1];
+                                        moved = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 'up':
+                    for (let x = 0; x < 4; x++) {
+                        for (let y = 1; y < 4; y++) {
+                            if (board[y][x] !== 0) {
+                                for (let i = y; i > 0; i--) {
+                                    if (board[i - 1][x] === 0) {
+                                        board[i - 1][x] = board[i][x];
+                                        board[i][x] = 0;
+                                        moved = true;
+                                    } else if (board[i - 1][x] === board[i][x]) {
+                                        board[i - 1][x] *= 2;
+                                        board[i][x] = 0;
+                                        score += board[i - 1][x];
+                                        moved = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 'down':
+                    for (let x = 0; x < 4; x++) {
+                        for (let y = 2; y >= 0; y--) {
+                            if (board[y][x] !== 0) {
+                                for (let i = y; i < 3; i++) {
+                                    if (board[i + 1][x] === 0) {
+                                        board[i + 1][x] = board[i][x];
+                                        board[i][x] = 0;
+                                        moved = true;
+                                    } else if (board[i + 1][x] === board[i][x]) {
+                                        board[i + 1][x] *= 2;
+                                        board[i][x] = 0;
+                                        score += board[i + 1][x];
+                                        moved = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            if (moved) {
+                addRandomTile();
+                updateBoard();
+            }
+        }
+
+        // Обработчик нажатий клавиш
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                move('left');
+            } else if (e.key === 'ArrowRight') {
+                move('right');
+            } else if (e.key === 'ArrowUp') {
+                move('up');
+            } else if (e.key === 'ArrowDown') {
+                move('down');
+            }
+        });
+
+        // Обработчик касаний для мобильных устройств
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { // Проверяем, что только одно касание
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length === 1) { // Проверяем, что только одно касание
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > 0) {
+                        move('right');
+                    } else {
+                        move('left');
+                    }
+                } else {
+                    if (deltaY > 0) {
+                        move('down');
+                    } else {
+                        move('up');
+                    }
+                }
+            }
+        });
+
+        startGame();
+    </script>
+</body>
+</html>
